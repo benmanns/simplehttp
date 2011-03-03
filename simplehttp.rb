@@ -1,6 +1,7 @@
 require 'bundler'
 Bundler.require :default
 
+require 'cgi'
 require 'socket'
 
 class SimpleHttp < EventMachine::Connection
@@ -37,6 +38,15 @@ class SimpleHttp < EventMachine::Connection
       header = line.split /: */, 2
       headers[header[0]] = header[1] if header.length == 2
     end
+  end
+
+  def error key
+    send_line "HTTP/1.0 #{CGI::HTTP_STATUS[key]}"
+    send_line "Content-Type: text/plain"
+    send_line "Content-Length: #{CGI::HTTP_STATUS[key].length}"
+    send_line
+    send_data CGI::HTTP_STATUS[key]
+    close_connection_after_writing
   end
 
   def send_line line=nil
