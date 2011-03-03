@@ -3,6 +3,7 @@ Bundler.require :default
 
 require 'cgi'
 require 'socket'
+require 'uri'
 
 class SimpleHttp < EventMachine::Connection
   def initialize options={}
@@ -56,6 +57,22 @@ class SimpleHttp < EventMachine::Connection
   end
 
   def get resource, headers
+    uri = URI.parse resource
+    file = File.expand_path File.join(@path, uri.path)
+    if File.file? file
+      send_line 'HTTP/1.0 200 OK'
+      send_line "Content-Length: #{File.size? file}"
+      send_line
+      if File.size? file
+        stream_file_data(file).callback do
+          close_connection_after_writing
+        end
+      else
+        close_connection_after_writing
+      end
+    else
+      error 'NOT_FOUND'
+    end
   end
 
   def send_line line=nil
