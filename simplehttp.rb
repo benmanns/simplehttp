@@ -38,6 +38,12 @@ class SimpleHttp < EventMachine::Connection
       header = line.split /: */, 2
       headers[header[0]] = header[1] if header.length == 2
     end
+
+    if action.casecmp('GET').zero?
+      get page, headers
+    else
+      error 'NOT_IMPLEMENTED'
+    end
   end
 
   def error key
@@ -47,6 +53,9 @@ class SimpleHttp < EventMachine::Connection
     send_line
     send_data CGI::HTTP_STATUS[key]
     close_connection_after_writing
+  end
+
+  def get resource, headers
   end
 
   def send_line line=nil
