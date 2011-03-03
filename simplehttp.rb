@@ -31,6 +31,12 @@ class SimpleHttp < EventMachine::Connection
   end
 
   def receive_request request
+    action, page, protocol = request.shift.split ' ', 3
+    headers = {}
+    request.each do |line|
+      header = line.split /: */, 2
+      headers[header[0]] = header[1] if header.length == 2
+    end
   end
 
   def send_line line=nil
