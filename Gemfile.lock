@@ -2,9 +2,11 @@ GEM
   remote: http://rubygems.org/
   specs:
     eventmachine (0.12.10)
+    mime-types (1.16)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   eventmachine
+  mime-types
