@@ -61,8 +61,15 @@ class SimpleHttp < EventMachine::Connection
     return error('BAD_REQUEST') unless uri.start_with? '/'
     return error('BAD_REQUEST') if uri.path.include? '/.'
     file = File.expand_path File.join(@path, uri.path)
+    content_type = MIME::Types.type_for(file).first
+    if content_type
+      content_type = content_type.content_type
+    else
+      content_type = 'text/plain'
+    end
     if File.file? file
       send_line 'HTTP/1.0 200 OK'
+      send_line "Content-Type: #{content_type}"
       send_line "Content-Length: #{File.size? file}"
       send_line
       if File.size? file
