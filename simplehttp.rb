@@ -70,16 +70,44 @@ class SimpleHttp < EventMachine::Connection
       content_type = 'text/plain'
     end
     if File.file? file
-      send_line 'HTTP/1.0 200 OK'
-      send_line "Content-Type: #{content_type}"
-      send_line "Content-Length: #{File.size? file}"
-      send_line
-      if File.size? file
-        stream_file_data(file).callback do
+      if content_type == 'application/x-cgi' and File.executable? file
+        env = {
+          'DOCUMENT_ROOT' => @path || '',
+          'HTTP_COOKIE' => headers['Cookies'] || '',
+          'HTTP_HOST' => headers['Host'] || '',
+          'HTTP_REFERER' => headers['Referer'] || '',
+          'HTTP_USER_AGENT' => headers['User-Agent'] || '',
+          'PATH' => file || '',
+          'QUERY_STRING' => uri.query || '',
+          'REMOTE_ADDR' => @remote_ip,
+          'REMOTE_HOST' => @remote_ip,
+          'REMOTE_PORT' => @remote_port,
+          'REMOTE_USER' => '',
+          'REMOTE_METHOD' => 'GET',
+          'REQUEST_URI' =>  uri.path || '',
+          'SCRIPT_FILENAME' => file || '',
+          'SCRIPT_NAME' => uri.path || '',
+          'SERVER_ADMIN' => 'admin@localhost',
+          'SERVER_NAME' => 'localhost',
+          'SERVER_PORT' => @port.to_s || '',
+          'SERVER_SOFTWARE' => 'SimpleHTTP 0.1',
+        }.inject('') { |result, variable| result += "#{variable[0]}='#{variable[1].gsub "'", "'\\\\'"}' "}
+        content = `#{env}#{file}`
+        send_line 'HTTP/1.0 200 OK'
+        send_data content
+        close_connection_after_writing
+      else
+        send_line 'HTTP/1.0 200 OK'
+        send_line "Content-Type: #{content_type}"
+        send_line "Content-Length: #{File.size? file}"
+        send_line
+        if File.size? file
+          stream_file_data(file).callback do
+            close_connection_after_writing
+          end
+        else
           close_connection_after_writing
         end
-      else
-        close_connection_after_writing
       end
     else
       error 'NOT_FOUND'
