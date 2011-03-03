@@ -11,6 +11,7 @@ class SimpleHttp < EventMachine::Connection
 
   def post_init
     @buffer = BufferedTokenizer.new "\r\n"
+    @lines = []
     @remote_port, @remote_ip = Socket.unpack_sockaddr_in get_peername 
   end
 
@@ -21,6 +22,15 @@ class SimpleHttp < EventMachine::Connection
   end
 
   def receive_line line
+    unless line.empty?
+      @lines << line
+    else
+      receive_request @lines
+      @lines.clear
+    end
+  end
+
+  def receive_request request
   end
 end
 
