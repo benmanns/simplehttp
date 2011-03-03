@@ -58,6 +58,8 @@ class SimpleHttp < EventMachine::Connection
 
   def get resource, headers
     uri = URI.parse resource
+    return error('BAD_REQUEST') unless uri.start_with? '/'
+    return error('BAD_REQUEST') if uri.path.include? '/.'
     file = File.expand_path File.join(@path, uri.path)
     if File.file? file
       send_line 'HTTP/1.0 200 OK'
