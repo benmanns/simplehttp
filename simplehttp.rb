@@ -32,6 +32,10 @@ class SimpleHttp < EventMachine::Connection
 
   def receive_request request
   end
+
+  def send_line line=nil
+    send_data "#{line}\r\n"
+  end
 end
 
 port = (ARGV.shift || 8080).to_i
