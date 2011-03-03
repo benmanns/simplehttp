@@ -5,6 +5,8 @@ require 'cgi'
 require 'socket'
 require 'uri'
 
+MIME::Types.add(MIME::Type.from_hash('Content-Type' => 'application/x-cgi', 'Extensions' => ['cgi']))
+
 class SimpleHttp < EventMachine::Connection
   def initialize options={}
     @path = options[:path]
